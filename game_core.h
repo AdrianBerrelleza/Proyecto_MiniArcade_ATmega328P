@@ -25,6 +25,7 @@ typedef struct {
 
 extern GameContext game;
 
+void game_seed(uint16_t seed);
 uint16_t game_random16(void);
 uint8_t game_hit(int16_t x, int16_t y, int16_t w, int16_t h,
 int16_t a, int16_t b, int16_t c, int16_t d);

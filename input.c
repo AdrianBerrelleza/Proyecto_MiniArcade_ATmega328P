@@ -1,9 +1,18 @@
 #include "input.h"
 #include "hal.h"
+#include <avr/interrupt.h>
+#include <util/atomic.h>
 
-static uint8_t keys = 0, press = 0, raw_old = 0, stable = 0;
+static uint8_t keys = 0, press = 0, stable = 0;
+static volatile uint8_t isr_raw = 0;
+static volatile uint8_t isr_dirty = 0;
 static uint32_t changed = 0;
 static int16_t center_x = 512;
+
+ISR(PCINT2_vect) {
+	isr_raw = (~PIND >> 2) & 7;
+	isr_dirty = 1;
+}
 
 void input_init(void) {
 	uint32_t sum = 0;
@@ -11,15 +20,25 @@ void input_init(void) {
 		sum += hal_adc_read(2);
 	}
 	center_x = sum / 16;
+
+	/* Estado inicial de los botones al encender */
+	isr_raw = (~PIND >> 2) & 7;
+	stable = isr_raw;
+	keys = stable;
 }
 
 void input_update(void) {
-	uint8_t r = (~PIND >> 2) & 7;
+	uint8_t r, dirty;
 	uint32_t t = hal_now();
 	press = 0;
 
-	if (r != raw_old) {
-		raw_old = r;
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		r = isr_raw;
+		dirty = isr_dirty;
+		isr_dirty = 0;
+	}
+
+	if (dirty) {
 		changed = t;
 	}
 	if (t - changed >= 25 && r != stable) {

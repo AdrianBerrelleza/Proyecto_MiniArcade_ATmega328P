@@ -68,6 +68,10 @@ void game_start(void) {
 		draw_fleet(GREEN);
 		lcd_rect(game.player, 290, 22, 12, CYAN);
 		} else if (game.mode == 3) {
+		/* Semilla basada en los ms transcurridos y el contador rápido TCNT0 */
+		uint32_t now = hal_now();
+		game_seed((uint16_t)(now ^ (now >> 16) ^ ((uint16_t)TCNT0 << 8)));
+
 		for (uint8_t i = 0; i < 3; i++) {
 			game.ox[i] = 20 + game_random16() % 180;
 			game.oy[i] = -100 - i * 95;

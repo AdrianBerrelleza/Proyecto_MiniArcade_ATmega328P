@@ -30,6 +30,10 @@ void hal_init(void) {
 	PORTC |= _BV(PC1);
 	_delay_ms(10);
 
+	/* Interrupciones por cambio de pin en PD2, PD3 y PD4 (PCINT18..20) */
+	PCICR |= _BV(PCIE2);
+	PCMSK2 |= _BV(PCINT18) | _BV(PCINT19) | _BV(PCINT20);
+
 	/* ADC (Prescaler 128 -> 125 kHz) */
 	ADCSRA = _BV(ADEN) | _BV(ADPS2) | _BV(ADPS1) | _BV(ADPS0);
 
